@@ -13,7 +13,7 @@ class Sqlite
 {
   public:
     Sqlite(char* dbPath, int led_built_in);
-    void sendCommand(char* command);
+    void sendCommand(String command);
   private:
     char path;
 };

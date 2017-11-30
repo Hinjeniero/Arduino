@@ -1,6 +1,6 @@
 #include <Process.h>
 #include "dht.h"
-#define DHT11_PIN 7
+#define DHT11_PIN 9
 dht DHT;
 char* databasePath = "/tmp/DHT11/sensor.db";
 

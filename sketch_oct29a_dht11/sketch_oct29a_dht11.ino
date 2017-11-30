@@ -1,5 +1,5 @@
 #include <dht.h>
-#define DHT11_PIN 7
+#define DHT11_PIN 9
 dht DHT;
 void setup() {
  // put your setup code here, to run once:
