@@ -1,6 +1,7 @@
-#include <dht.h>
+#include <DHT.h>
 #include <LiquidCrystal.h>
 #include <Process.h>
+#include <Sqlite.h>
 
 #ifdef DEBUG
  #define DEBUG_PRINT(x)  Serial.print (x)
@@ -17,15 +18,17 @@
 #define D6 3
 #define D7 2
 #define DHT11_PIN 9
+#define DHTTYPE DHT11
 #define readingDelay 200 //in miliseconds //200 because with this library lower values give out a timeout error
 #define highTemp 40
 #define lowTemp 0
 #define highHum 80
 #define lowHum 20
 
+
 int readingsCont = 0;
 bool ok = true;
-dht DHT;
+DHT dht(DHT11_PIN, DHTTYPE);
 LiquidCrystal lcd(RS, EN, D4, D5, D6, D7);
 
 void setup() {
@@ -40,8 +43,8 @@ void setup() {
 
 void loop() {
   if(tempSensorIsOkay()){
-    float temperature = DHT.temperature;
-    float humidity = DHT.humidity;
+    float temperature = DHT.readTemperature();
+    float humidity = DHT.readHumidity();
     if ((humidity < lowHum) || (humidity > highHum) || (temperature < lowTemp) || (temperature > highTemp))
       blinkScreen();
     char t[6]=""; // Buffer big enough for 5-character float
@@ -54,7 +57,7 @@ void loop() {
     strcat(hum, h);
     writeInLcd(temp, hum);
     readingsCont++;
-    if(readingsCont == 10){
+    if(readingsCont == 300){
       sendCommand(String("INSERT INTO sensor (temp, humidity) VALUES (")+String(t)+", "+String(h)+String(");"));
       DEBUG_PRINTLN("Saving in BD...");
       readingsCont = 0;
@@ -78,18 +81,14 @@ bool tempSensorIsOkay(){
   }
   return false;
 }
-
+/*
 void sendCommand(String command){
    Process p;
    String cmd = "sqlite3 -line ";
    String dbCommand = String(" '"+command+"'");
    Serial.println(cmd+String("/tmp/temp_sensor.db")+dbCommand);
    p.runShellCommand(cmd+String("/tmp/temp_sensor.db")+dbCommand);
-   /*while (p.available()>0) {
-     char c = p.read();
-     Serial.print(c);
-   }*/
-}
+}*/
 
 void blinkScreen(){
   for(int i=0; i<10; i++){
