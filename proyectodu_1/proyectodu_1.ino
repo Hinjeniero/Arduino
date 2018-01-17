@@ -26,14 +26,19 @@
 #define BLINKDELAY 200
 #define DBDELAY 200
 #define RUN_INTERVAL_SAVEDB 30000 //in ms
+#define ERROR_INTERVAL 3600000 //in ms
 
 short HIGHTEMPERATURE=30; 
 short LOWTEMPERATURE=20; 
 short HIGHHUMIDITY=80; 
 short LOWHUMIDITY=10;
-String sketche_version = "0.2";
+String sketche_version = "2";
 float temperature = 0;
 float humidity = 0;
+String default_email = "davidomfl@gmail.com";
+boolean error_state = false;
+unsigned long lastError = (unsigned long)-3600000;
+
 YunServer server;
 
 unsigned long lastRun = (unsigned long)-60000;
@@ -75,6 +80,23 @@ void loop() {
     if ((humidity < LOWHUMIDITY) || (humidity > HIGHHUMIDITY) || (temperature < LOWTEMPERATURE) || (temperature > HIGHTEMPERATURE)){
       DEBUG_PRINTLN(F("Abnormal values detected."));
       blinkScreen();
+      if (!error_state && (now-lastError > ERROR_INTERVAL)){
+        error_state = true;
+        lastError = now;
+        if (humidity < LOWHUMIDITY)
+          sendEmail("LOW HUMIDITY ALERT!", "Humidity is too low!");
+        else if(humidity > HIGHHUMIDITY)
+          sendEmail("HIGH HUMIDITY ALERT!", "Humidity is too high!");
+        else if(temperature < LOWTEMPERATURE)
+          sendEmail("LOW TEMPERATURE ALERT!", "Temperature is too low!");
+        else
+          sendEmail("HIGH TEMPERATURE ALERT!", "Temperature is too high!");
+      }
+    }else{
+      if (error_state){
+        error_state = false;
+        sendEmail("Values are back to normal", "Everything is fine. Keep working.");
+      }
     }
     char temp[20] = "";
     char hum[20] = "";
@@ -111,6 +133,11 @@ void sendDBCommand(String command){
    Process proc;
    String cmd = "sqlite3 -line ";
    proc.runShellCommand(cmd+String(dbPath)+String(" '"+command+"'"));
+}
+
+void sendEmail(String subject, String text){
+  Process proc;
+  proc.runShellCommand("/root/scripts/email.sh '"+subject+"' '"+text+"' "+default_email);
 }
 
 void initiateScripts(){

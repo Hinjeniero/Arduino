@@ -7,7 +7,7 @@ class Sqlite
     Sqlite(char* dbPath, int led_built_in);
     void sendCommand(String command);
   private:
-    char path;
+    char* path;
     Process proc;
 };
 #endif

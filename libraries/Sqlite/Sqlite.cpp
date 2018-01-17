@@ -11,7 +11,7 @@ Sqlite::Sqlite(char* dbPath, int led_built_in){
   digitalWrite(led_built_in, LOW);
 }
 
-void Sqlite::sendCommand(String command){
+void Sqlite::sendDBCommand(String command){
    String cmd = "sqlite3 -line ";
    String dbCommand = String(" '"+command+"'");
    proc.runShellCommand(cmd+String(path)+dbCommand);
